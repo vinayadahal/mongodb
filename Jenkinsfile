@@ -48,7 +48,7 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
+        stage('Deploy k8s') {
             steps {
                 script {
                     def branch_name=env.BRANCH_NAME
@@ -73,6 +73,25 @@ pipeline {
                         sh 'kubectl apply -f k8s/dev/03-secret-mongo.yml'
                         sh 'kubectl apply -f k8s/dev/04-pvc-mongo.yml'
                         sh 'kubectl apply -f k8s/dev/05-deploy-mongodb.yml'
+                    } else {
+                        echo "Skipping deploy for feature branch: $branch_name..."
+                    }
+                }
+            }
+        }
+        stage('Deploy latest image') {
+            steps {
+                script {
+                    def branch_name=env.BRANCH_NAME
+                    if (branch_name == "main") {
+                        echo "Replace image in the cluster for main branch"
+                        sh 'kubectl set image statefulset/adex-webapp-mongo-stateful adex-webapp-mongo-pod=bidahal/mongodb:latest -n adex-webapp'
+                    } else if (branch_name == "stg") {
+                        echo "Replace image in the cluster for stg branch"
+                        sh 'kubectl set image statefulset/adex-webapp-mongo-stateful-stg adex-webapp-mongo-pod-stg=bidahal/mongodb:stg -n adex-webapp-stg'
+                    } else if (branch_name == "dev") {
+                        echo "Replace image in the cluster for dev branch"
+                        sh 'kubectl set image statefulset/adex-webapp-mongo-stateful-dev adex-webapp-mongo-pod-dev=bidahal/mongodb:dev -n adex-webapp-dev'
                     } else {
                         echo "Skipping deploy for feature branch: $branch_name..."
                     }
