@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config-stg
+  namespace: adex-webapp-stg
+data:
+  mongo-url: adex-webapp-mongo-service-stg

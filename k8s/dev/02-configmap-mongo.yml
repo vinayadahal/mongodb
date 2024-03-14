@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config-dev
+  namespace: adex-webapp-dev
+data:
+  mongo-url: adex-webapp-mongo-service-dev

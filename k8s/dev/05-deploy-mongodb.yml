@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: adex-webapp-mongo-stateful-dev
+  namespace: adex-webapp-dev
+  labels:
+    app: adex-webapp-mongo-label-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adex-webapp-mongo-label-dev
+  template:
+    metadata:
+      labels:
+        app: adex-webapp-mongo-label-dev
+    spec:
+      containers:
+        - name: adex-webapp-mongo-pod-dev
+          image: bidahal/mongodb:dev
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret-dev
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret-dev
+                  key: password
+          volumeMounts:
+            - name: mongodb-data-dev
+              mountPath: /data/db
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 200m # this is the minimum cpu that this pod will use
+              memory: 1024Mi
+            limits: # this is the limit on how much cpu can this pod use
+              cpu: 1000m # this 'm' refers to the microns for cpu and 1000 microns = 1 cpu core and 'mi' refers to the megabit for the ram.
+              memory: 1Gi
+      volumes:
+        - name: mongodb-data-dev
+          persistentVolumeClaim:
+            claimName: mongodb-pvc-dev
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adex-webapp-mongo-service-dev
+  namespace: adex-webapp-dev
+spec:
+  selector:
+    app: adex-webapp-mongo-label-dev
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
